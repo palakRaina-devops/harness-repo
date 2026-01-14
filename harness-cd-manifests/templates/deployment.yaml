@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: harness-app
+  labels:
+    app: harness-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: harness-app
+  template:
+    metadata:
+      labels:
+        app: harness-app
+    spec:
+      containers:
+        - name: harness-app
+          image: palakraina2001/harness-images:<+artifact.tag>
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
