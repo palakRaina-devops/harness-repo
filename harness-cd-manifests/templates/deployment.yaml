@@ -16,7 +16,8 @@ spec:
     spec:
       containers:
         - name: harness-app
-          image: palakraina2001/harness-images:latest
+          image: 
+            tag: <+pipeline.variables.imageTag>
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
