@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: harness-app
-          image: <+artifact.image>
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
