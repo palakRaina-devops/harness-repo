@@ -1,1 +1,1 @@
-image: palakraina2001/harness-images:<+pipeline.variables.imageTag>
+image: palakraina2001/harness-images:<+trigger.artifact.build>
