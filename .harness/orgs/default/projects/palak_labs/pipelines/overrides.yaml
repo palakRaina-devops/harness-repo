@@ -13,7 +13,15 @@ pipeline:
         spec:
           deploymentType: Kubernetes
           service:
-            serviceRef: k8service
+            serviceRef: kubserv
+            serviceInputs:
+              serviceDefinition:
+                type: Kubernetes
+                spec:
+                  artifacts:
+                    primary:
+                      primaryArtifactRef: <+input>
+                      sources: <+input>
           environments:
             metadata:
               parallel: true
