@@ -6,50 +6,43 @@ pipeline:
   tags: {}
   stages:
     - stage:
-        name: same-infra
-        identifier: sameinfra
+        name: deploy-stg
+        identifier: deploystg
         description: ""
         type: Deployment
         spec:
-          deploymentType: Kubernetes
+          deploymentType: NativeHelm
           service:
-            serviceRef: kubserv
+            serviceRef: helmabc
             serviceInputs:
               serviceDefinition:
-                type: Kubernetes
+                type: NativeHelm
                 spec:
                   artifacts:
                     primary:
                       primaryArtifactRef: <+input>
                       sources: <+input>
-          environments:
-            metadata:
-              parallel: true
-            values:
-              - environmentRef: K8env
-                deployToAll: true
-                infrastructureDefinitions: <+input>
-              - environmentRef: bgenv
-                deployToAll: true
-                infrastructureDefinitions: <+input>
+          environment:
+            environmentRef: K8env
+            deployToAll: false
+            infrastructureDefinitions:
+              - identifier: infaaaaa
           execution:
             steps:
               - step:
-                  name: Rollout Deployment
-                  identifier: rolloutDeployment
-                  type: K8sRollingDeploy
+                  name: Helm Deployment
+                  identifier: helmDeployment
+                  type: HelmDeploy
                   timeout: 10m
                   spec:
                     skipDryRun: false
-                    pruningEnabled: false
             rollbackSteps:
               - step:
-                  name: Rollback Rollout Deployment
-                  identifier: rollbackRolloutDeployment
-                  type: K8sRollingRollback
+                  name: Helm Rollback
+                  identifier: helmRollback
+                  type: HelmRollback
                   timeout: 10m
-                  spec:
-                    pruningEnabled: false
+                  spec: {}
         tags: {}
         failureStrategies:
           - onFailure:
