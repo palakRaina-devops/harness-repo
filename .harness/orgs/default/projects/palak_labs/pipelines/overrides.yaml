@@ -1,0 +1,51 @@
+pipeline:
+  name: overrides
+  identifier: overrides
+  projectIdentifier: palak_labs
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: same-infra
+        identifier: sameinfra
+        description: ""
+        type: Deployment
+        spec:
+          deploymentType: Kubernetes
+          service:
+            serviceRef: k8service
+          environments:
+            metadata:
+              parallel: true
+            values:
+              - environmentRef: K8env
+                deployToAll: true
+                infrastructureDefinitions: <+input>
+              - environmentRef: bgenv
+                deployToAll: true
+                infrastructureDefinitions: <+input>
+          execution:
+            steps:
+              - step:
+                  name: Rollout Deployment
+                  identifier: rolloutDeployment
+                  type: K8sRollingDeploy
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+                    pruningEnabled: false
+            rollbackSteps:
+              - step:
+                  name: Rollback Rollout Deployment
+                  identifier: rollbackRolloutDeployment
+                  type: K8sRollingRollback
+                  timeout: 10m
+                  spec:
+                    pruningEnabled: false
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
