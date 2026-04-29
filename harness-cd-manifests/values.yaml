@@ -1,1 +1,0 @@
-image: palakraina2001/harness-images:<+trigger.artifact.build>
