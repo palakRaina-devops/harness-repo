@@ -1,0 +1,13 @@
+# Paste this into: IDP -> Configure -> Plugins -> "Configure Backend Proxies"
+#
+# httpbin.org/get is a public echo endpoint. It returns the query params it
+# received under `args` and the headers under `headers`, so it is perfect for
+# confirming exactly what value of uid Harness IDP transmits.
+#
+# No secret/token is required because httpbin is public.
+proxy:
+  endpoints:
+    /httpbin:
+      target: https://httpbin.org
+      pathRewrite:
+        /api/proxy/httpbin/?: /
