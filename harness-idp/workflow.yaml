@@ -1,7 +1,7 @@
 apiVersion: harness.io/v1
 kind: Workflow
 name: uid-malforming-repro
-identifier: uid_malforming_repro
+identifier: uid_malforming_repro_2
 type: workflow
 # Replace with a valid owner in your account (user or group)
 owner: user:account/palak.raina@harness.io
