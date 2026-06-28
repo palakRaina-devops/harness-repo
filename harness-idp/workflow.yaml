@@ -4,7 +4,7 @@ name: uid-malforming-repro
 identifier: uid_malforming_repro
 type: workflow
 # Replace with a valid owner in your account (user or group)
-owner: user:account/YOUR_EMAIL@company.com
+owner: user:account/palak.raina@harness.io
 metadata:
   tags:
     - debug
