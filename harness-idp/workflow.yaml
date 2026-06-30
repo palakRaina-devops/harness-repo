@@ -21,7 +21,7 @@ spec:
   # known-good values and spot any malformation.
   userFieldMapping:
     uid: uid  
-    userEmail: email
+    Email: email
     name: name
   lifecycle: experimental
   output:
@@ -57,13 +57,13 @@ spec:
         # 3) Mapped comparison fields so you can sanity-check uid against
         #    values that are known to be correct.
         userEmail:
-          title: formContext.user.userEmail
+          title: formContext.user.Email
           description: Mapped from logged-in user's email
           type: string
           readonly: true
           ui:field: ContextViewer
           ui:options:
-            getContextData: ${{ formContext.user.userEmail }}
+            getContextData: ${{ formContext.user.Email }}
         userName:
           title: formContext.user.name
           description: Mapped from logged-in user's display name
