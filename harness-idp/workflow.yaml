@@ -1,0 +1,64 @@
+apiVersion: harness.io/v1
+kind: Workflow
+name: account-identifier-default-repro
+identifier: account_identifier_default_repro
+type: workflow
+# Replace with a valid owner in your account (user or group)
+owner: user:account/YOUR_EMAIL@company.com
+metadata:
+  description: >-
+    Repro for the customer report that <+account.identifier> used as a workflow
+    variable DEFAULT resolves to a static value in an INLINE workflow but is
+    stored/served as-is (unresolved) in a REMOTE workflow. This workflow defines
+    a variable `harness_account_id` whose default is the expression, and then
+    surfaces the effective value in the form so you can see, per case, whether it
+    is a resolved account id or the raw <+account.identifier> string.
+  tags:
+    - debug
+    - expressions
+    - account-identifier
+    - inline-vs-remote
+spec:
+  lifecycle: experimental
+  # This mirrors the customer's exact variable definition:
+  #   harness_account_id:
+  #     default: <+account.identifier>
+  #     type: string
+  # Defined here as a scaffolder parameter so the default is exercised in the form.
+  output:
+    text:
+      - title: Effective default value captured
+        content: |
+          harness_account_id (default was <+account.identifier>) resolved to:
+          ${{ parameters.harness_account_id }}
+  parameters:
+    - title: Inspect the <+account.identifier> default
+      properties:
+        # The variable under test. Its default is the expression the customer used.
+        # WHAT TO LOOK FOR:
+        #   - Inline (case 1) / remote-via-editor (case 2): the saved YAML should
+        #     already show a static account id here (resolved at save time), so the
+        #     field pre-fills with that static id.
+        #   - Remote-import (case 3) / git-webhook (case 4): the git file keeps the
+        #     raw <+account.identifier>, so getEntity serves the raw string and this
+        #     field pre-fills with the LITERAL text "<+account.identifier>"
+        #     (unresolved at runtime).
+        harness_account_id:
+          title: harness_account_id (default = <+account.identifier>)
+          description: >-
+            Pre-filled from the variable default. If you see a static id, the
+            expression was resolved at save time. If you see the literal
+            "<+account.identifier>", it was stored/served unresolved.
+          type: string
+          default: <+account.identifier>
+
+        # Read-only echo of the effective parameter value, so the resolved vs raw
+        # string is unambiguous even if the input above is edited.
+        effectiveValue:
+          title: Effective value of harness_account_id
+          description: Live value bound to the parameter above
+          type: string
+          readonly: true
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: ${{ parameters.harness_account_id }}
