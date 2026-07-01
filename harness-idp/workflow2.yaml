@@ -1,0 +1,81 @@
+apiVersion: harness.io/v1
+kind: Workflow
+name: uid-default-structure-repro
+identifier: uid_default_structure_repro_different
+type: workflow
+# Replace with a valid owner in your account (user or group)
+owner: user:account/palak.raina@harness.io
+metadata:
+  description: >-
+    Repro to inspect the DEFAULT formContext.user structure with NO
+    userFieldMapping configured. Mirrors the customer's original setup so we can
+    see exactly which user fields (userEmail / uid / name / email) are provided
+    by default today, and compare against their reported "before" structure.
+  tags:
+    - debug
+    - formcontext
+    - default-structure
+spec:
+  # INTENTIONALLY no userFieldMapping here.
+  # The customer reports they relied on a default-populated `user` object
+  # (userEmail / uid / name) without ever configuring userFieldMapping.
+  # This workflow reproduces that exact condition.
+  lifecycle: experimental
+  parameters:
+    - title: Inspect DEFAULT formContext.user (no userFieldMapping)
+      properties:
+        # 1) Full raw context dump. Primary evidence: shows the entire object
+        #    tree so we can read the exact shape of `user` with no mapping.
+        fullContext:
+          title: Full Form Context (DEBUG)
+          description: Raw formContext object - read the `user` block here
+          type: string
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: ${{ formContext }}
+
+        # 2) The `user` sub-object on its own. This is the field set the
+        #    customer says regressed from { userEmail, uid, name } to { email }.
+        userObject:
+          title: formContext.user (the whole user object)
+          description: Should reveal which user fields exist by default
+          type: string
+          readonly: true
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: ${{ formContext.user }}
+
+        # 3-6) Probe each field the customer expected by default. Whichever of
+        #      these render a value is provided by default; blanks are absent.
+        probeUid:
+          title: formContext.user.uid
+          description: Customer expected this by default (the required field)
+          type: string
+          readonly: true
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: ${{ formContext.user.uid }}
+        probeUserEmail:
+          title: formContext.user.userEmail
+          description: Customer's reported "before" email field name
+          type: string
+          readonly: true
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: ${{ formContext.user.userEmail }}
+        probeEmail:
+          title: formContext.user.email
+          description: Customer's reported "after" email field name
+          type: string
+          readonly: true
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: ${{ formContext.user.email }}
+        probeName:
+          title: formContext.user.name
+          description: Customer expected this by default
+          type: string
+          readonly: true
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: ${{ formContext.user.name }}
