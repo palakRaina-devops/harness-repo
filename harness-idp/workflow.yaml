@@ -62,3 +62,10 @@ spec:
           ui:field: ContextViewer
           ui:options:
             getContextData: ${{ parameters.harness_account_id }}
+  steps:
+    - id: capture
+      name: Capture harness_account_id
+      action: debug:log
+      input:
+        message: |
+          harness_account_id (default was <+account.identifier>) = ${{ parameters.harness_account_id }}
