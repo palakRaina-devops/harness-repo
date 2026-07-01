@@ -20,7 +20,6 @@ spec:
   # We additionally map email and name so we can compare uid against
   # known-good values and spot any malformation.
   userFieldMapping:
-    uid: uid  
     Email: email
     name: name
   lifecycle: experimental
