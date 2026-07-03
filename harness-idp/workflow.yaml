@@ -1,7 +1,7 @@
 apiVersion: harness.io/v1
 kind: Workflow
-name: uid-malforming-repro
-identifier: uid_malforming_repro_2
+name: uuid-malforming-repro
+identifier: uuid_malforming_repro_2
 type: workflow
 # Replace with a valid owner in your account (user or group)
 owner: user:account/palak.raina@harness.io
@@ -11,13 +11,13 @@ metadata:
     - formcontext
     - dynamic-picker
   description: >-
-    Reproduction workflow to inspect whether formContext.user.uid is malformed.
-    It surfaces the uid (and other mapped user fields) directly in the form via
-    ContextViewer, and also appends uid to a live API request so you can confirm
+    Reproduction workflow to inspect whether formContext.user.uuid is malformed.
+    It surfaces the uuid (and other mapped user fields) directly in the form via
+    ContextViewer, and also appends uuid to a live API request so you can confirm
     exactly what value is transmitted over the wire.
 spec:
-  # uid is provided by default in formContext.user.uid.
-  # We additionally map email and name so we can compare uid against
+  # uuid is provided by default in formContext.user.uuid.
+  # We additionally map email and name so we can compare uuid against
   # known-good values and spot any malformation.
   userFieldMapping:
     Email: email
@@ -25,15 +25,15 @@ spec:
   lifecycle: experimental
   output:
     text:
-      - title: Captured uid value
+      - title: Captured uuid value
         content: |
-          formContext.user.uid was: ${{ parameters.userUid }}
+          formContext.user.uuid was: ${{ parameters.useruuid }}
   parameters:
-    - title: Inspect formContext.user.uid
+    - title: Inspect formContext.user.uuid
       properties:
         # 1) Full dump of the form context. This is the single most useful
         #    field for debugging: it shows the entire `user` object so you can
-        #    see the raw shape of uid, email and name together.
+        #    see the raw shape of uuid, email and name together.
         fullContext:
           title: Full Form Context (DEBUG)
           description: Raw formContext object - inspect the `user` block here
@@ -42,18 +42,18 @@ spec:
           ui:options:
             getContextData: ${{ formContext }}
 
-        # 2) The field under investigation. Renders the uid value on its own.
+        # 2) The field under investigation. Renders the uuid value on its own.
         #    A healthy value looks like an entity ref, e.g. user:default/john.doe
-        userUid:
-          title: formContext.user.uid (the field under investigation)
+        useruuid:
+          title: formContext.user.uuid (the field under investigation)
           description: This should be a well-formed user entity reference
           type: string
           readonly: true
           ui:field: ContextViewer
           ui:options:
-            getContextData: ${{ formContext.user.uid }}
+            getContextData: ${{ formContext.user.uuid }}
 
-        # 3) Mapped comparison fields so you can sanity-check uid against
+        # 3) Mapped comparison fields so you can sanity-check uuid against
         #    values that are known to be correct.
         userEmail:
           title: formContext.user.Email
@@ -72,17 +72,17 @@ spec:
           ui:options:
             getContextData: ${{ formContext.user.name }}
 
-    - title: Confirm what uid is sent over the wire (optional)
+    - title: Confirm what uuid is sent over the wire (optional)
       properties:
-        # 4) Sends uid (+ email/name) to an echo endpoint via a backend proxy.
+        # 4) Sends uuid (+ email/name) to an echo endpoint via a backend proxy.
         #    Open browser DevTools -> Network to see the outgoing request, and
         #    the dropdown / response will reflect exactly what was transmitted.
         #    Requires the backend proxy in backend-proxy-config.yaml.
         echoUser:
           title: Echo user fields to API
           description: >-
-            Calls httpbin /get with uid, userEmail and name as query params.
-            Inspect the request in the Network tab to confirm the uid value.
+            Calls httpbin /get with uuid, userEmail and name as query params.
+            Inspect the request in the Network tab to confirm the uuid value.
           type: string
           ui:field: SelectFieldFromApi
           ui:options:
@@ -91,7 +91,7 @@ spec:
             arraySelector: args
             appendUser:
               data:
-                - uid
+                - uuid
                 - userEmail
                 - name
               location:
@@ -104,12 +104,12 @@ spec:
           ui:field: HarnessAuthToken
   steps:
     - id: log
-      name: Capture uid
+      name: Capture uuid
       action: trigger:harness-custom-pipeline
       input:
         # Replace with a real pipeline URL if you want to forward the value
         # into a pipeline; otherwise this step is just a placeholder.
         url: REPLACE_WITH_YOUR_PIPELINE_URL
         inputset:
-          captured_uid: ${{ parameters.userUid }}
+          captured_uuid: ${{ parameters.useruuid }}
         apikey: ${{ parameters.token }}
