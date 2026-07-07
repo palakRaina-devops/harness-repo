@@ -1,115 +1,84 @@
 apiVersion: harness.io/v1
 kind: Workflow
-name: uuid-malforming-repro
-identifier: uuid_malforming_repro_2
+name: uid-default-structure-repro
+identifier: uid_default_structure_repro
 type: workflow
 # Replace with a valid owner in your account (user or group)
-owner: user:account/palak.raina@harness.io
+owner: user:account/YOUR_EMAIL@company.com
 metadata:
+  description: >-
+    Repro to inspect the DEFAULT formContext.user structure with NO
+    userFieldMapping configured. Mirrors the customer's original setup so we can
+    see exactly which user fields (userEmail / uid / name / email) are provided
+    by default today, and compare against their reported "before" structure.
   tags:
     - debug
     - formcontext
-    - dynamic-picker
-  description: >-
-    Reproduction workflow to inspect whether formContext.user.uuid is malformed.
-    It surfaces the uuid (and other mapped user fields) directly in the form via
-    ContextViewer, and also appends uuid to a live API request so you can confirm
-    exactly what value is transmitted over the wire.
+    - default-structure
 spec:
-  # uuid is provided by default in formContext.user.uuid.
-  # We additionally map email and name so we can compare uuid against
-  # known-good values and spot any malformation.
-  userFieldMapping:
-    Email: email
-    name: name
+  # INTENTIONALLY no userFieldMapping here.
+  # The customer reports they relied on a default-populated `user` object
+  # (userEmail / uid / name) without ever configuring userFieldMapping.
+  # This workflow reproduces that exact condition.
   lifecycle: experimental
-  output:
-    text:
-      - title: Captured uuid value
-        content: |
-          formContext.user.uuid was: ${{ parameters.useruuid }}
   parameters:
-    - title: Inspect formContext.user.uuid
+    - title: Inspect DEFAULT formContext.user (no userFieldMapping)
       properties:
-        # 1) Full dump of the form context. This is the single most useful
-        #    field for debugging: it shows the entire `user` object so you can
-        #    see the raw shape of uuid, email and name together.
+        # 1) Full raw context dump. Primary evidence: shows the entire object
+        #    tree so we can read the exact shape of `user` with no mapping.
+        # NOTE: object dumps use BARE braces {{...}} (the docs' debug pattern,
+        # and what the customer's screenshots use) so the JSON renders readably.
+        # The $-prefixed form ${{...}} stringifies objects to "[object Object]".
         fullContext:
-          title: Full Form Context (DEBUG)
-          description: Raw formContext object - inspect the `user` block here
+          title: Live Form Context (DEBUG)
+          description: Raw formContext object - read the `user` block here
           type: string
           ui:field: ContextViewer
           ui:options:
-            getContextData: ${{ formContext }}
+            getContextData: '{{formContext}}'
 
-        # 2) The field under investigation. Renders the uuid value on its own.
-        #    A healthy value looks like an entity ref, e.g. user:default/john.doe
-        useruuid:
-          title: formContext.user.uuid (the field under investigation)
-          description: This should be a well-formed user entity reference
+        # 2) The `user` sub-object on its own. This is the field set the
+        #    customer says regressed from { userEmail, uid, name } to { email }.
+        userObject:
+          title: formContext.user (the whole user object)
+          description: Should reveal which user fields exist by default
           type: string
           readonly: true
           ui:field: ContextViewer
           ui:options:
-            getContextData: ${{ formContext.user.uuid }}
+            getContextData: '{{formContext.user}}'
 
-        # 3) Mapped comparison fields so you can sanity-check uuid against
-        #    values that are known to be correct.
-        userEmail:
-          title: formContext.user.Email
-          description: Mapped from logged-in user's email
+        # 3-6) Probe each field the customer expected by default. Whichever of
+        #      these render a value is provided by default; blanks are absent.
+        probeUid:
+          title: formContext.user.uid
+          description: Customer expected this by default (the required field)
           type: string
           readonly: true
           ui:field: ContextViewer
           ui:options:
-            getContextData: ${{ formContext.user.Email }}
-        userName:
+            getContextData: ${{ formContext.user.uid }}
+        probeUserEmail:
+          title: formContext.user.userEmail
+          description: Customer's reported "before" email field name
+          type: string
+          readonly: true
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: ${{ formContext.user.userEmail }}
+        probeEmail:
+          title: formContext.user.email
+          description: Customer's reported "after" email field name
+          type: string
+          readonly: true
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: ${{ formContext.user.email }}
+        probeName:
           title: formContext.user.name
-          description: Mapped from logged-in user's display name
+          description: Customer expected this by default
           type: string
           readonly: true
           ui:field: ContextViewer
           ui:options:
             getContextData: ${{ formContext.user.name }}
-
-    - title: Confirm what uuid is sent over the wire (optional)
-      properties:
-        # 4) Sends uuid (+ email/name) to an echo endpoint via a backend proxy.
-        #    Open browser DevTools -> Network to see the outgoing request, and
-        #    the dropdown / response will reflect exactly what was transmitted.
-        #    Requires the backend proxy in backend-proxy-config.yaml.
-        echoUser:
-          title: Echo user fields to API
-          description: >-
-            Calls httpbin /get with uuid, userEmail and name as query params.
-            Inspect the request in the Network tab to confirm the uuid value.
-          type: string
-          ui:field: SelectFieldFromApi
-          ui:options:
-            path: proxy/httpbin/get
-            # httpbin echoes the query params back under `args`
-            arraySelector: args
-            appendUser:
-              data:
-                - uuid
-                - userEmail
-                - name
-              location:
-                - query
-                - headers
-        token:
-          title: Harness Token
-          type: string
-          ui:widget: password
-          ui:field: HarnessAuthToken
-  steps:
-    - id: log
-      name: Capture uuid
-      action: trigger:harness-custom-pipeline
-      input:
-        # Replace with a real pipeline URL if you want to forward the value
-        # into a pipeline; otherwise this step is just a placeholder.
-        url: REPLACE_WITH_YOUR_PIPELINE_URL
-        inputset:
-          captured_uuid: ${{ parameters.useruuid }}
-        apikey: ${{ parameters.token }}
